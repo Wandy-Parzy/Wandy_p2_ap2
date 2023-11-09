@@ -94,9 +94,9 @@ class GastosViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun RegistrosbyId(id: Int) {
+    fun GastosbyId(id: Int) {
         gastosId = id
-        //Limpiar()
+        Limpiar()
         gastosRepository.getGastosId(gastosId).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
@@ -203,7 +203,7 @@ class GastosViewModel @Inject constructor(
         }
         return hayError
     }
-    fun postRegistros() {
+    fun postGastos() {
         viewModelScope.launch {
             if (gastosId == null) {
                 gastosId += 1
