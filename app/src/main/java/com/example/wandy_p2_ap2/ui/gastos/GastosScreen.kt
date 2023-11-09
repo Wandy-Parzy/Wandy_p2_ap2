@@ -39,6 +39,7 @@ import com.example.wandy_p2_ap2.data.remote.dto.GastosDto
 @Composable
 fun GastosScreen(
     viewModel: GastosViewModel = hiltViewModel(),
+
     ) {
     Column( modifier = Modifier.fillMaxWidth()) {
         Spacer(modifier = Modifier.padding(20.dp))
@@ -83,11 +84,12 @@ fun GastosListBody(gastoList: List<GastosDto>) {
         }
     }
 }
+
 @Composable
 fun GastosRow(gastos: GastosDto) {
-    val viewModel: GastosViewModel = hiltViewModel()
 
     Spacer(modifier = Modifier.padding(5.dp))
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -147,6 +149,14 @@ fun GastosRow(gastos: GastosDto) {
                             color = Color(0xC3303030),
                             modifier = Modifier.weight(8f)
                         )
+                        Text(
+                            text = gastos.ncf,
+                            fontSize = 20.sp,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Color(0xC3303030),
+                            modifier = Modifier.weight(8f)
+                        )
+
                     }
                 }
             }

@@ -73,6 +73,7 @@ class GastosViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
+
     init {
         gastosRepository.getGastos().onEach { result ->
             when (result) {
@@ -92,6 +93,36 @@ class GastosViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
+
+    fun RegistrosbyId(id: Int) {
+        gastosId = id
+        //Limpiar()
+        gastosRepository.getGastosId(gastosId).onEach { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    uiStateGastos.update { it.copy(isLoading = true) }
+                }
+                is Resource.Success -> {
+                    uiStateGastos.update {
+                        it.copy(gasto = result.data)
+                    }
+                    fecha = uiStateGastos.value.gasto!!.fecha
+                    suplidor = uiStateGastos.value.gasto!!.suplidor
+                    concepto = uiStateGastos.value.gasto!!.concepto.toString()
+                    ncf = uiStateGastos.value.gasto!!.ncf.toString()
+                    monto = uiStateGastos.value.gasto!!.monto!!
+
+                }
+                is Resource.Error -> {
+                    uiStateGastos.update { it.copy(error = result.message ?: "Error desconocido") }
+                }
+
+                else -> {}
+            }
+        }.launchIn(viewModelScope)
+    }
+
+
     fun putGastos(id: Int) {
         viewModelScope.launch {
             gastosId = id
@@ -115,5 +146,87 @@ class GastosViewModel @Inject constructor(
             }
         }
     }
+    fun onFechaChanged(fecha: String) {
+        this.fecha = fecha
+        HayErrores()
+    }
+
+    fun onSuplidorChanged(suplidor: String) {
+        this.suplidor = suplidor
+        HayErrores()
+    }
+
+    fun onConceptoChanged(concepto: String) {
+        this.concepto = concepto
+        HayErrores()
+    }
+
+    fun onNcfChanged(ncf: String) {
+        this.ncf = ncf
+        HayErrores()
+    }
+
+    fun onMontoChanged(monto: Int) {
+        this.monto = monto
+        HayErrores()
+    }
+    fun HayErrores(): Boolean {
+        var hayError = false
+        fecha = ""
+        if (fecha.isBlank()) {
+            fechaError = "Ingrese la fecha"
+            hayError = true
+        }
+
+        suplidorError = ""
+        if (suplidor.isBlank()) {
+            suplidorError = "Ingrese el suplidor"
+            hayError = true
+        }
+
+        conceptoError = ""
+        if(concepto.isBlank()){
+            concepto = "Ingrese el concepto"
+            hayError = true
+        }
+
+        ncfError = ""
+        if(ncf.isBlank()){
+            ncf = "Ingrese el ncf"
+            hayError = true
+        }
+
+        montoError = ""
+        if (monto == 0) {
+            montoError = "Ingrese el monto"
+            hayError = true
+        }
+        return hayError
+    }
+    fun postRegistros() {
+        viewModelScope.launch {
+            if (gastosId == null) {
+                gastosId += 1
+            }
+            gastosRepository.postGastos(
+                GastosDto(
+                    idGasto = gastosId,
+                    fecha = fecha,
+                    suplidor = suplidor,
+                    concepto = concepto,
+                    ncf = ncf,
+                    monto = monto
+                )
+            )
+        }
+    }
+    private fun Limpiar() {
+        fecha = ""
+        suplidorError = ""
+        concepto = ""
+        ncf = ""
+        monto = 0
+    }
+
 }
 
