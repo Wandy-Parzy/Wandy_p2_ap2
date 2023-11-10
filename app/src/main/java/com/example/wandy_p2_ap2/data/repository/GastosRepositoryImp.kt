@@ -45,7 +45,7 @@ class GastosRepositoryImp @Inject constructor(
         }
     }
 
-    override suspend fun putgastos(id: Int, gastosDto: GastosDto) {
+    override suspend fun putGastos(id: Int, gastosDto: GastosDto) {
         gastosApi.putGastos(id, gastosDto)
     }
     override suspend fun deleteGastos(id: Int){
