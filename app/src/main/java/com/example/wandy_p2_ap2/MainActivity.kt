@@ -5,7 +5,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -31,8 +34,9 @@ class MainActivity : ComponentActivity() {
             Wandy_p2_ap2Theme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
                 ) {
                     var navController = rememberNavController()
                     NavHost(
@@ -40,9 +44,7 @@ class MainActivity : ComponentActivity() {
                         startDestination = ScreenModuleG.GastoScreen.route
                     ) {
                         composable(ScreenModuleG.GastoScreen.route) {
-                            GastosScreen(navController = navController) {
-                                navController.navigate(ScreenModuleG.GastoScreen.route)
-                            }
+                            GastosScreen(navController = navController)
                         }
                         composable(
                             ScreenModuleG.Modifier_Screen.route + "/{id}",

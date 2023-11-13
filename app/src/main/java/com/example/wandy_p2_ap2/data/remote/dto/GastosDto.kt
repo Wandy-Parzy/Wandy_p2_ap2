@@ -4,9 +4,9 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 data class GastosDto (
-    @PrimaryKey(autoGenerate = true)
-    var idGasto : Int?=null,
+    var idGasto : Int,
     var fecha: String = "",
+    var idSuplidor: Int,
     var suplidor: String = "",
     var concepto: String? = "",
     var itbis: Int = 0,

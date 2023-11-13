@@ -4,7 +4,6 @@ import android.app.DatePickerDialog
 import android.os.Build
 import android.widget.DatePicker
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
@@ -54,7 +52,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.wandy_p2_ap2.data.remote.dto.GastosDto
 import com.example.wandy_p2_ap2.ui.viewModel.GastosApiViewModel
 import com.example.wandy_p2_ap2.util.ScreenModuleG
@@ -63,12 +60,10 @@ import java.util.Calendar
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun GastosScreen(
-    navController: NavController,
-    viewModel: GastosApiViewModel = hiltViewModel(),
-    onGastoClick: () -> Unit
+    navController: NavController
 ) {
     Column(
-        Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .wrapContentSize(Alignment.Center)
     ) {
@@ -102,56 +97,104 @@ private fun GastosBody(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentSize(Alignment.CenterEnd)
+            .padding(5.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-
-        Spacer(modifier = Modifier.padding(20.dp))
+        Spacer(modifier = Modifier.padding(5.dp))
         Text(
-            text = "Gastos", fontSize = 25.sp,
+            text = "Gastos",
+            fontSize = 25.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.align(Alignment.CenterHorizontally),
             fontWeight = FontWeight.Bold
         )
-        Spacer(modifier = Modifier.padding(10.dp))
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp)
-                .wrapContentSize(Alignment.Center),
-            value = viewModel.fecha,
-            onValueChange = { viewModel.fecha = it },
-            enabled = false,
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.DateRange,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(33.dp)
-                        .padding(4.dp)
-                        .clickable {
-                            mDatePickerDialog.show()
-                        })
-            },
-            label = { Text(text = "Fecha") }
-        )
 
-        OutlinedTextField(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(4.dp)
-                .wrapContentSize(Alignment.Center),
-            value = viewModel.concepto,
-            label = { Text(text = "Concepto") },
-            onValueChange = viewModel::onConceptoChanged,
-            isError = viewModel.conceptoError.isNotBlank(),
-            trailingIcon = {
-                if (viewModel.conceptoError.isNotBlank()) {
-                    Icon(imageVector = Icons.TwoTone.Close, contentDescription = "error")
-                } else {
-                    Icon(imageVector = Icons.TwoTone.Check, contentDescription = "success")
+                .padding(0.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Date Field
+            OutlinedTextField(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp),
+                value = viewModel.fecha,
+                onValueChange = { viewModel.fecha = it },
+                enabled = false,
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.DateRange,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(33.dp)
+                            .padding(4.dp)
+                            .clickable {
+                                mDatePickerDialog.show()
+                            }
+                    )
+                },
+                label = { Text(text = "Fecha") }
+            )
+        }
+        Spacer(modifier = Modifier.padding(17.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Suplidor Field
+            OutlinedTextField(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp),
+                value = viewModel.suplidor,
+                label = { Text(text = "Suplidor") },
+                onValueChange = viewModel::onSuplidorChanged,
+                isError = viewModel.suplidorError.isNotBlank(),
+                trailingIcon = {
+                    if (viewModel.suplidorError.isBlank()) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Check,
+                            contentDescription = "success",
+                            modifier = Modifier.clickable(onClick = { viewModel.suplidor = "" })
+                        )
+                    } else if (viewModel.suplidorError.isNotBlank()) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Close,
+                            contentDescription = "error",
+                            modifier = Modifier.clickable(onClick = { viewModel.LimpiarSuplidor() })
+                        )
+                    }
                 }
-            }
-        )
+            )
+            // Concepto Field
+            OutlinedTextField(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp),
+                value = viewModel.concepto,
+                label = { Text(text = "Concepto") },
+                onValueChange = viewModel::onConceptoChanged,
+                isError = viewModel.conceptoError.isNotBlank(),
+                trailingIcon = {
+                    if (viewModel.conceptoError.isBlank()) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Check,
+                            contentDescription = "success",
+                            modifier = Modifier.clickable(onClick = { viewModel.concepto = "" })
+                        )
+                    } else if (viewModel.conceptoError.isNotBlank()) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Close,
+                            contentDescription = "error",
+                            modifier = Modifier.clickable(onClick = { viewModel.LimpiarConcepto() })
+                        )
+                    }
+                }
+            )
+        }
         if (viewModel.conceptoError.isNotBlank()) {
             Text(
                 text = viewModel.conceptoError,
@@ -161,31 +204,13 @@ private fun GastosBody(
                     .wrapContentSize(Alignment.Center)
                     .align(Alignment.CenterHorizontally)
             )
-        } else {
+        } else if (viewModel.conceptoError.isBlank()) {
             Text(
                 text = viewModel.conceptoError,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.wrapContentSize(Alignment.Center)
             )
         }
-
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp)
-                .wrapContentSize(Alignment.Center),
-            value = viewModel.suplidor,
-            label = { Text(text = "Suplidor") },
-            onValueChange = viewModel::onSuplidorChanged,
-            isError = viewModel.suplidorError.isNotBlank(),
-            trailingIcon = {
-                if (viewModel.suplidorError.isNotBlank()) {
-                    Icon(imageVector = Icons.TwoTone.Close, contentDescription = "error")
-                } else {
-                    Icon(imageVector = Icons.TwoTone.Check, contentDescription = "success")
-                }
-            }
-        )
         if (viewModel.suplidorError.isNotBlank()) {
             Text(
                 text = viewModel.suplidorError,
@@ -195,7 +220,7 @@ private fun GastosBody(
                     .wrapContentSize(Alignment.Center)
                     .align(Alignment.CenterHorizontally)
             )
-        } else {
+        } else if (viewModel.suplidorError.isBlank()) {
             Text(
                 text = viewModel.suplidorError,
                 color = MaterialTheme.colorScheme.primary,
@@ -203,23 +228,62 @@ private fun GastosBody(
             )
         }
 
-        OutlinedTextField(
+        Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp)
-                .wrapContentSize(Alignment.Center),
-            value = viewModel.itbis.toString(),
-            label = { Text(text = "ITBIS") },
-            onValueChange = viewModel::onItbisChanged,
-            isError = viewModel.itbisError.isNotBlank(),
-            trailingIcon = {
-                if (viewModel.itbisError.isBlank()) {
-                    Icon(imageVector = Icons.TwoTone.Close, contentDescription = "error")
-                } else {
-                    Icon(imageVector = Icons.TwoTone.Check, contentDescription = "success")
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Monto Field
+            OutlinedTextField(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp),
+                value = viewModel.monto.toString(),
+                label = { Text(text = "Monto") },
+                onValueChange = viewModel::onMontoChanged,
+                isError = viewModel.montoError.isNotBlank(),
+                trailingIcon = {
+                    if (viewModel.montoError.isBlank()) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Check,
+                            contentDescription = "success",
+                            modifier = Modifier.clickable(onClick = { viewModel.monto = 0 })
+                        )
+                    } else if (viewModel.montoError.isNotBlank()) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Close,
+                            contentDescription = "error",
+                            modifier = Modifier.clickable(onClick = { viewModel.LimpiarMonto() })
+                        )
+                    }
                 }
-            }
-        )
+            )
+            // ITBIS Field
+            OutlinedTextField(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp),
+                value = viewModel.itbis.toString(),
+                label = { Text(text = "ITBIS") },
+                onValueChange = viewModel::onItbisChanged,
+                isError = viewModel.itbisError.isNotBlank(),
+                trailingIcon = {
+                    if (viewModel.itbisError.isBlank()) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Check,
+                            contentDescription = "success",
+                            modifier = Modifier.clickable(onClick = { viewModel.itbis = 0 })
+                        )
+                    } else if (viewModel.itbisError.isNotBlank()) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Close,
+                            contentDescription = "error",
+                            modifier = Modifier.clickable(onClick = { viewModel.LimpiarItbis() })
+                        )
+                    }
+                }
+            )
+        }
         if (viewModel.itbisError.isNotBlank()) {
             Text(
                 text = viewModel.itbisError,
@@ -229,31 +293,13 @@ private fun GastosBody(
                     .wrapContentSize(Alignment.Center)
                     .align(Alignment.CenterHorizontally)
             )
-        } else {
+        } else if (viewModel.itbisError.isBlank()) {
             Text(
                 text = viewModel.itbisError,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.wrapContentSize(Alignment.Center)
             )
         }
-
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp)
-                .wrapContentSize(Alignment.Center),
-            value = viewModel.monto.toString(),
-            label = { Text(text = "Monto") },
-            onValueChange = viewModel::onMontoChanged,
-            isError = viewModel.montoError.isNotBlank(),
-            trailingIcon = {
-                if (viewModel.montoError.isNotBlank()) {
-                    Icon(imageVector = Icons.TwoTone.Close, contentDescription = "error")
-                } else {
-                    Icon(imageVector = Icons.TwoTone.Check, contentDescription = "success")
-                }
-            }
-        )
         if (viewModel.montoError.isNotBlank()) {
             Text(
                 text = viewModel.montoError,
@@ -263,7 +309,7 @@ private fun GastosBody(
                     .wrapContentSize(Alignment.Center)
                     .align(Alignment.CenterHorizontally)
             )
-        } else {
+        } else if (viewModel.montoError.isBlank()) {
             Text(
                 text = viewModel.montoError,
                 color = MaterialTheme.colorScheme.primary,
@@ -274,21 +320,23 @@ private fun GastosBody(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentSize(Alignment.Center),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .wrapContentSize(Alignment.Center)
         ) {
             ExtendedFloatingActionButton(
                 modifier = Modifier
-                    .size(60.dp, 50.dp)
-                    .wrapContentSize(Alignment.Center),
-                text = { Text("Guardar") },
+                    .size(470.dp, 50.dp),
                 containerColor = Color.Blue,
-                contentColor = Color.Blue,
+                text = { Text("Guardar", fontSize = 26.sp, color = Color.White, modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentSize(Alignment.Center)) },
                 icon = {
                     Icon(
                         imageVector = Icons.Filled.Done,
                         contentDescription = "Save",
-                        tint = Color.White
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(26.dp)
+                            .wrapContentSize(Alignment.Center)
                     )
                 },
                 onClick = {
@@ -309,7 +357,7 @@ fun Gastos_List_Screen(
     onGastoClick: (Int) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Spacer(modifier = Modifier.padding(20.dp))
+        Spacer(modifier = Modifier.padding(3.dp))
         Scaffold(
             modifier = Modifier
                 .fillMaxWidth()
@@ -373,21 +421,17 @@ fun GastosListBody(gastoList: List<GastosDto>, onGastoClick: (Int) -> Unit) {
 fun GastosRow(gastoRow: GastosDto, onGastoClick: (Int) -> Unit) {
 
     val viewModel: GastosApiViewModel = hiltViewModel()
-    val navController = rememberNavController()
 
     Spacer(modifier = Modifier.padding(5.dp))
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentSize(Alignment.Center)
-            .size(400.dp, 360.dp)
+            .fillMaxSize()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp)
-                .wrapContentSize(Alignment.Center)
         ) {
             Card(
                 shape = RoundedCornerShape(20.dp)
@@ -395,69 +439,79 @@ fun GastosRow(gastoRow: GastosDto, onGastoClick: (Int) -> Unit) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(30.dp)
+                        .padding(25.dp)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .wrapContentSize(Alignment.TopEnd)
+                            .wrapContentSize(Alignment.TopStart)
                             .padding(5.dp),
                         horizontalArrangement = Arrangement.End
                     ) {
                         Text(
                             String.format("ID: %d", gastoRow.idGasto),
-                            fontSize = 25.sp,
+                            fontSize = 20.sp,
                             style = MaterialTheme.typography.titleSmall,
-                            color = Color(0xC3303030),
+                            color = Color(0xFF1D1D1D),
                             modifier = Modifier.weight(8f)
                         )
                         Text(
                             String.format("%.10s", gastoRow.fecha),
-                            fontSize = 25.sp,
+                            fontSize = 20.sp,
                             style = MaterialTheme.typography.titleSmall,
-                            color = Color(0xC3303030),
+                            color = Color(0xFF1D1D1D),
                             modifier = Modifier
                                 .weight(8f)
                                 .wrapContentWidth(Alignment.End)
                         )
                     }
 
-                    Divider(modifier = Modifier.padding(5.dp), color = Color(0xC3303030), thickness = 2.dp)
-                    Spacer(modifier = Modifier.padding(5.dp))
+                    Divider(
+                        modifier = Modifier.padding(2.dp),
+                        color = Color(0xFF1D1D1D),
+                        thickness = 1.dp
+                    )
+                    Spacer(modifier = Modifier.padding(2.dp))
 
                     Row(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentSize(Alignment.Center)
                     ) {
                         Text(
                             text = gastoRow.suplidor,
-                            fontSize = 30.sp,
+                            fontSize = 25.sp,
                             style = MaterialTheme.typography.titleSmall,
-                            color = Color(0xC3303030),
+                            color = Color(0xFF1D1D1D),
                             modifier = Modifier
                                 .weight(8f)
                                 .wrapContentWidth(Alignment.CenterHorizontally)
                         )
                     }
 
-                    Spacer(modifier = Modifier.padding(5.dp))
+                    Spacer(modifier = Modifier.padding(2.dp))
 
-                    Column (modifier = Modifier.padding(5.dp)) {
+                    Column(modifier = Modifier.padding(3.dp)) {
                         Text(
                             String.format("Concepto: %s ", gastoRow.concepto),
-                            fontSize = 20.sp,
+                            fontSize = 15.sp,
                             style = MaterialTheme.typography.titleSmall,
-                            color = Color(0xC3303030),
+                            color = Color(0xFF1D1D1D),
                         )
                         Text(
                             String.format("Ncf: %s", gastoRow.ncf),
-                            fontSize = 20.sp,
+                            fontSize = 15.sp,
                             style = MaterialTheme.typography.titleSmall,
-                            color = Color(0xC3303030)
+                            color = Color(0xFF1D1D1D)
                         )
                     }
 
-                    Spacer(modifier = Modifier.padding(5.dp))
-                    Divider(modifier = Modifier.padding(5.dp), color = Color(0xC3303030), thickness = 2.dp)
+                    Spacer(modifier = Modifier.padding(2.dp))
+                    Divider(
+                        modifier = Modifier.padding(2.dp),
+                        color = Color(0xFF1D1D1D),
+                        thickness = 1.dp
+                    )
 
                     Row(
                         modifier = Modifier
@@ -468,16 +522,16 @@ fun GastosRow(gastoRow: GastosDto, onGastoClick: (Int) -> Unit) {
                     ) {
                         Text(
                             String.format("Itbis: %d", gastoRow.itbis),
-                            fontSize = 30.sp,
+                            fontSize = 20.sp,
                             style = MaterialTheme.typography.titleSmall,
-                            color = Color(0xC3303030),
+                            color = Color(0xFF1D1D1D),
                             modifier = Modifier.weight(8f)
                         )
                         Text(
                             String.format("$%d", gastoRow.monto),
-                            fontSize = 30.sp,
+                            fontSize = 25.sp,
                             style = MaterialTheme.typography.titleSmall,
-                            color = Color(0xC3303030),
+                            color = Color(0xFF1D1D1D),
                             modifier = Modifier
                                 .weight(8f)
                                 .wrapContentWidth(Alignment.End)
@@ -486,49 +540,48 @@ fun GastosRow(gastoRow: GastosDto, onGastoClick: (Int) -> Unit) {
                 }
             }
         }
-    }
 
-    Spacer(modifier = Modifier.padding(5.dp))
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentSize(Alignment.TopCenter)
-    ) {
-        Box {
-            ExtendedFloatingActionButton(
-                modifier = Modifier
-                    .size(60.dp, 50.dp),
-                containerColor = Color.Cyan,
-                text = { Text("Modificar") },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = "Modifier",
-                        tint = Color.White
-                    )
-                },
-                onClick = { gastoRow.idGasto?.let { onGastoClick(it) } }
-            )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentSize(Alignment.Center)
+        ) {
+            Box {
+                ExtendedFloatingActionButton(
+                    modifier = Modifier
+                        .size(60.dp, 50.dp),
+                    containerColor = Color.Cyan,
+                    text = { Text("Modificar") },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = "Modifier",
+                            tint = Color.White
+                        )
+                    },
+                    onClick = { gastoRow.idGasto?.let { onGastoClick(it) } }
+                )
+            }
+            Spacer(modifier = Modifier.padding(5.dp))
+            Box {
+                ExtendedFloatingActionButton(
+                    modifier = Modifier
+                        .size(60.dp, 50.dp),
+                    containerColor = Color.Red,
+                    text = { Text("Eliminar") },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Delete",
+                            tint = Color.White
+                        )
+                    },
+                    onClick = {
+                        gastoRow.idGasto?.let { viewModel.deleteGastos(it) }
+                    }
+                )
+            }
         }
         Spacer(modifier = Modifier.padding(5.dp))
-        Box {
-            ExtendedFloatingActionButton(
-                modifier = Modifier
-                    .size(60.dp, 50.dp),
-                containerColor = Color.Red,
-                text = { Text("Eliminar") },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = "Delete",
-                        tint = Color.White
-                    )
-                },
-                onClick = {
-                    gastoRow.idGasto?.let { viewModel.deleteGastos(it, navController) }
-                }
-            )
-        }
     }
-    Spacer(modifier = Modifier.padding(5.dp))
 }

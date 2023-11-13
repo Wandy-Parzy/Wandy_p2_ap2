@@ -30,11 +30,13 @@ data class GastosListState(
     val gastoLS: List<GastosDto> = emptyList(),
     val error: String = ""
 )
+
 data class GastoState(
     val isLoading: Boolean = false,
     val gastoS: GastosDto? = null,
     val error: String = ""
 )
+
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class GastosApiViewModel @Inject constructor(
@@ -43,6 +45,7 @@ class GastosApiViewModel @Inject constructor(
 ) : ViewModel() {
 
     var idGasto by mutableIntStateOf(0)
+    var idSuplidor by mutableIntStateOf(0)
     var fecha by mutableStateOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
     var suplidor by mutableStateOf("")
     var concepto by mutableStateOf("")
@@ -61,21 +64,24 @@ class GastosApiViewModel @Inject constructor(
         private set
 
     init {
-        getGastos()
-    }
-    fun getGastos(){
         gastosRepository.getGastos().onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                     uiStateGastosLS.update { it.copy(isLoading = true) }
                 }
+
                 is Resource.Success -> {
                     uiStateGastosLS.update {
                         it.copy(gastoLS = result.data ?: emptyList())
                     }
                 }
+
                 is Resource.Error -> {
-                    uiStateGastosLS.update { it.copy(error = result.message ?: "Error desconocido") }
+                    uiStateGastosLS.update {
+                        it.copy(
+                            error = result.message ?: "Error desconocido"
+                        )
+                    }
                 }
             }
         }.launchIn(viewModelScope)
@@ -89,8 +95,9 @@ class GastosApiViewModel @Inject constructor(
                 is Resource.Loading -> {
                     uiStateGastoS.update { it.copy(isLoading = true) }
                 }
+
                 is Resource.Success -> {
-                    uiStateGastoS .update {
+                    uiStateGastoS.update {
                         it.copy(gastoS = result.data)
                     }
                     fecha = uiStateGastoS.value.gastoS!!.fecha
@@ -100,6 +107,7 @@ class GastosApiViewModel @Inject constructor(
                     itbis = uiStateGastoS.value.gastoS!!.itbis
                     monto = uiStateGastoS.value.gastoS!!.monto
                 }
+
                 is Resource.Error -> {
                     uiStateGastoS.update { it.copy(error = result.message ?: "Error desconocido") }
                 }
@@ -107,45 +115,18 @@ class GastosApiViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun putGastos(id: Int?) {
-        viewModelScope.launch {
-            idGasto = id!!
-            try {
-                if (idGasto != null) {
-                    gastosRepository.putGastos(
-                        idGasto, GastosDto(
-                            idGasto = idGasto,
-                            fecha = fecha,
-                            suplidor = suplidor,
-                            concepto = concepto,
-                            ncf = "GHDDDFR",
-                            itbis = itbis,
-                            monto = monto
-                        )
-                    )
-                } else {
-                    throw IllegalArgumentException("idGasto is null")
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun postGastos() {
+    fun putGastos(id: Int) {
         viewModelScope.launch {
             try {
-                if(idGasto == 0) {
-                    idGasto += 1
-                }
-                gastosRepository.postGastos(
-                    GastosDto(
-                        idGasto = idGasto,
+                gastosRepository.putGastos(
+                    idGasto, GastosDto(
+                        idGasto = id,
                         fecha = fecha,
+                        idSuplidor = idSuplidor,
                         suplidor = suplidor,
                         concepto = concepto,
                         itbis = itbis,
-                        ncf = "GHDDDFR",
+                        ncf = "DRTHHTCS",
                         monto = monto
                     )
                 )
@@ -155,7 +136,34 @@ class GastosApiViewModel @Inject constructor(
         }
     }
 
-    fun deleteGastos(id: Int?, navController: NavController) {
+    fun postGastos() {
+        viewModelScope.launch {
+            try {
+                if (idGasto == 0) {
+                    idGasto += 1
+                }
+                if (idSuplidor == 0) {
+                    idSuplidor += 1
+                }
+                gastosRepository.postGastos(
+                    GastosDto(
+                        idGasto = idGasto,
+                        fecha = fecha,
+                        idSuplidor = idSuplidor,
+                        suplidor = suplidor,
+                        concepto = concepto,
+                        itbis = itbis,
+                        ncf = "DRTHHTCS",
+                        monto = monto
+                    )
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun deleteGastos(id: Int?) {
         viewModelScope.launch {
             if (id == null) {
                 Log.w("DeleteGastos", "id is null")
@@ -164,11 +172,6 @@ class GastosApiViewModel @Inject constructor(
 
             try {
                 gastosRepository.deleteGastos(id)
-
-                // Después de eliminar el gasto, navega de nuevo a la misma pantalla
-                val action = ScreenModuleG.GastoScreen.route
-                navController.navigate(action)
-
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -186,12 +189,12 @@ class GastosApiViewModel @Inject constructor(
     }
 
     fun onItbisChanged(itbis: String) {
-        this.itbis = itbis.toIntOrNull()?:0
+        this.itbis = itbis.toIntOrNull() ?: 0
         hayErrores()
     }
 
     fun onMontoChanged(monto: String) {
-        this.monto = monto.toIntOrNull()?:0
+        this.monto = monto.toIntOrNull() ?: 0
         hayErrores()
     }
 
@@ -202,11 +205,17 @@ class GastosApiViewModel @Inject constructor(
         if (suplidor.isBlank()) {
             suplidorError = "Ingrese el suplidor"
             hayError = true
+        } else if (suplidor.length < 5) {
+            suplidorError = "El suplidor debe tener al menos 10 caracteres"
+            hayError = true
         }
 
         conceptoError = ""
         if (concepto.isBlank()) {
             conceptoError = "Ingrese el concepto"
+            hayError = true
+        } else if (concepto.length < 5) {
+            conceptoError = "El concepto debe tener al menos 10 caracteres"
             hayError = true
         }
 
@@ -214,11 +223,23 @@ class GastosApiViewModel @Inject constructor(
         if (itbis < 1 || itbis.toString().isBlank()) {
             itbisError = "El ITBIS no puede ser negativo"
             hayError = true
+        } else if (itbis > 100) {
+            itbisError = "El ITBIS no puede ser mayor a 100"
+            hayError = true
+        } else if (itbis > monto) {
+            itbisError = "El ITBIS no puede ser mayor al monto"
+            hayError = true
         }
 
         montoError = ""
-        if (monto < 1 || itbis.toString().isBlank()) {
+        if (monto < 1 || monto.toString().isBlank()) {
             montoError = "El monto debe ser mayor que cero"
+            hayError = true
+        } else if (monto > 1000000) {
+            montoError = "El monto no puede ser mayor a 1,000,000"
+            hayError = true
+        } else if (monto < itbis) {
+            montoError = "El monto no puede ser menor al ITBIS"
             hayError = true
         }
 
@@ -231,6 +252,22 @@ class GastosApiViewModel @Inject constructor(
         concepto = ""
         concepto = ""
         itbis = 0
+        monto = 0
+    }
+
+    fun LimpiarSuplidor() {
+        suplidor = ""
+    }
+
+    fun LimpiarConcepto() {
+        concepto = ""
+    }
+
+    fun LimpiarItbis() {
+        itbis = 0
+    }
+
+    fun LimpiarMonto() {
         monto = 0
     }
 }

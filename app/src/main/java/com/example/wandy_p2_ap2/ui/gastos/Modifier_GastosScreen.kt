@@ -3,19 +3,26 @@ package com.example.wandy_p2_ap2.ui.gastos
 import android.app.DatePickerDialog
 import android.os.Build
 import android.widget.DatePicker
+import android.widget.ScrollView
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -33,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.ScrollingView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.wandy_p2_ap2.ui.viewModel.GastosApiViewModel
@@ -42,7 +50,7 @@ import java.util.Calendar
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Modifier_Gastos_Screen(
-    navController : NavController,
+    navController: NavController,
     idGasto: Int,
     viewModel: GastosApiViewModel = hiltViewModel(),
     onSaveClick: () -> Unit
@@ -67,59 +75,79 @@ fun Modifier_Gastos_Screen(
         }, anio, mes, dia
     )
 
+
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentSize(Alignment.CenterEnd)
+            .fillMaxSize()
+            .padding(10.dp)
+            .verticalScroll(rememberScrollState())
     ) {
 
-        Spacer(modifier = Modifier.padding(20.dp))
-        Text(
-            text = "Modificar gastos", fontSize = 27.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            fontWeight = FontWeight.Bold
-        )
-
-        OutlinedTextField(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(4.dp)
-                .wrapContentSize(Alignment.Center),
-            value = viewModel.fecha,
-            onValueChange = { viewModel.fecha = it },
-            enabled = false,
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.DateRange,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(33.dp)
-                        .padding(4.dp)
-                        .clickable {
-                            mDatePickerDialog.show()
-                        })
-            },
-            label = { Text(text = "Fecha") }
-        )
+                .wrapContentSize(Alignment.CenterEnd)
+        ) {
 
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp)
-                .wrapContentSize(Alignment.Center),
-            value = viewModel.concepto,
-            label = { Text(text = "Concepto") },
-            onValueChange = viewModel::onConceptoChanged,
-            isError = viewModel.conceptoError.isNotBlank(),
-            trailingIcon = {
-                if (viewModel.conceptoError.isNotBlank()) {
-                    Icon(imageVector = Icons.TwoTone.Close, contentDescription = "error")
-                } else {
-                    Icon(imageVector = Icons.TwoTone.Check, contentDescription = "success")
+            Text(
+                text = "Modificar gastos", fontSize = 30.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                fontWeight = FontWeight.Bold
+            )
+
+
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp)
+            .wrapContentSize(Alignment.Center),
+        value = viewModel.fecha,
+        onValueChange = { viewModel.fecha = it },
+        enabled = false,
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Filled.DateRange,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(33.dp)
+                    .padding(4.dp)
+                    .clickable {
+                        mDatePickerDialog.show()
+                    })
+        },
+        label = { Text(text = "Fecha") }
+    )
+
+
+
+            // Concepto Field
+            OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp)
+                    .wrapContentSize(Alignment.Center),
+                value = viewModel.concepto,
+                label = { Text(text = "Concepto") },
+                onValueChange = viewModel::onConceptoChanged,
+                isError = viewModel.conceptoError.isNotBlank(),
+                trailingIcon = {
+                    if (viewModel.conceptoError.isBlank()) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Check,
+                            contentDescription = "success",
+                            modifier = Modifier.clickable(onClick = { viewModel.concepto = "" })
+                        )
+                    } else if (viewModel.conceptoError.isNotBlank()) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Close,
+                            contentDescription = "error",
+                            modifier = Modifier.clickable(onClick = { viewModel.LimpiarConcepto() })
+                        )
+                    }
                 }
-            }
-        )
+            )
+        }
         if (viewModel.conceptoError.isNotBlank()) {
             Text(
                 text = viewModel.conceptoError,
@@ -129,7 +157,7 @@ fun Modifier_Gastos_Screen(
                     .wrapContentSize(Alignment.Center)
                     .align(Alignment.CenterHorizontally)
             )
-        } else {
+        } else if (viewModel.conceptoError.isBlank()) {
             Text(
                 text = viewModel.conceptoError,
                 color = MaterialTheme.colorScheme.primary,
@@ -137,6 +165,7 @@ fun Modifier_Gastos_Screen(
             )
         }
 
+        // Suplidor Field
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
@@ -147,10 +176,18 @@ fun Modifier_Gastos_Screen(
             onValueChange = viewModel::onSuplidorChanged,
             isError = viewModel.suplidorError.isNotBlank(),
             trailingIcon = {
-                if (viewModel.suplidorError.isNotBlank()) {
-                    Icon(imageVector = Icons.TwoTone.Close, contentDescription = "error")
-                } else {
-                    Icon(imageVector = Icons.TwoTone.Check, contentDescription = "success")
+                if (viewModel.suplidorError.isBlank()) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Check,
+                        contentDescription = "success",
+                        modifier = Modifier.clickable(onClick = { viewModel.suplidor = "" })
+                    )
+                } else if (viewModel.suplidorError.isNotBlank()) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Close,
+                        contentDescription = "error",
+                        modifier = Modifier.clickable(onClick = { viewModel.LimpiarSuplidor() })
+                    )
                 }
             }
         )
@@ -163,7 +200,7 @@ fun Modifier_Gastos_Screen(
                     .wrapContentSize(Alignment.Center)
                     .align(Alignment.CenterHorizontally)
             )
-        } else {
+        } else if (viewModel.suplidorError.isBlank()) {
             Text(
                 text = viewModel.suplidorError,
                 color = MaterialTheme.colorScheme.primary,
@@ -171,7 +208,7 @@ fun Modifier_Gastos_Screen(
             )
         }
 
-
+        // ITBIS Field
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
@@ -182,10 +219,18 @@ fun Modifier_Gastos_Screen(
             onValueChange = viewModel::onItbisChanged,
             isError = viewModel.itbisError.isNotBlank(),
             trailingIcon = {
-                if (viewModel.itbisError.isNotBlank() || viewModel.itbis < 1) {
-                    Icon(imageVector = Icons.TwoTone.Close, contentDescription = "error")
-                } else {
-                    Icon(imageVector = Icons.TwoTone.Check, contentDescription = "success")
+                if (viewModel.itbisError.isBlank()) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Check,
+                        contentDescription = "success",
+                        modifier = Modifier.clickable(onClick = { viewModel.itbis = 0 })
+                    )
+                } else if (viewModel.itbisError.isNotBlank()) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Close,
+                        contentDescription = "error",
+                        modifier = Modifier.clickable(onClick = { viewModel.LimpiarItbis() })
+                    )
                 }
             }
         )
@@ -198,7 +243,7 @@ fun Modifier_Gastos_Screen(
                     .wrapContentSize(Alignment.Center)
                     .align(Alignment.CenterHorizontally)
             )
-        } else {
+        } else if (viewModel.itbisError.isBlank()) {
             Text(
                 text = viewModel.itbisError,
                 color = MaterialTheme.colorScheme.primary,
@@ -206,6 +251,7 @@ fun Modifier_Gastos_Screen(
             )
         }
 
+        // Monto Field
         OutlinedTextField(
             modifier = Modifier
                 .fillMaxWidth()
@@ -216,10 +262,18 @@ fun Modifier_Gastos_Screen(
             onValueChange = viewModel::onMontoChanged,
             isError = viewModel.montoError.isNotBlank(),
             trailingIcon = {
-                if (viewModel.montoError.isNotBlank() || viewModel.monto < 1) {
-                    Icon(imageVector = Icons.TwoTone.Close, contentDescription = "error")
-                } else {
-                    Icon(imageVector = Icons.TwoTone.Check, contentDescription = "success")
+                if (viewModel.montoError.isBlank()) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Check,
+                        contentDescription = "success",
+                        modifier = Modifier.clickable(onClick = { viewModel.monto = 0 })
+                    )
+                } else if (viewModel.montoError.isNotBlank()) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Close,
+                        contentDescription = "error",
+                        modifier = Modifier.clickable(onClick = { viewModel.LimpiarMonto() })
+                    )
                 }
             }
         )
@@ -232,13 +286,16 @@ fun Modifier_Gastos_Screen(
                     .wrapContentSize(Alignment.Center)
                     .align(Alignment.CenterHorizontally)
             )
-        } else {
+        } else if (viewModel.montoError.isBlank()) {
             Text(
                 text = viewModel.montoError,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.wrapContentSize(Alignment.Center)
             )
         }
+
+
+
         Spacer(modifier = Modifier.padding(10.dp))
         Row(
             modifier = Modifier
@@ -248,16 +305,19 @@ fun Modifier_Gastos_Screen(
         ) {
             ExtendedFloatingActionButton(
                 modifier = Modifier
-                    .size(60.dp, 50.dp)
-                    .wrapContentSize(Alignment.Center),
-                text = { Text("Modificar") },
+                    .size(470.dp, 50.dp),
                 containerColor = Color.Blue,
-                contentColor = Color.Blue,
+                text = { Text("Modificar", fontSize = 26.sp, color = Color.White, modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentSize(Alignment.Center)) },
                 icon = {
                     Icon(
                         imageVector = Icons.Filled.Edit,
                         contentDescription = "Edit",
-                        tint = Color.White
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(26.dp)
+                            .wrapContentSize(Alignment.Center)
                     )
                 },
                 onClick = {
@@ -269,3 +329,5 @@ fun Modifier_Gastos_Screen(
         }
     }
 }
+
+
