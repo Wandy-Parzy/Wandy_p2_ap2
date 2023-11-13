@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
@@ -50,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -208,6 +210,9 @@ private fun GastosBody(
                 label = { Text(text = "ITBIS") },
                 onValueChange = viewModel::onItbisChanged,
                 isError = viewModel.itbisError.isNotBlank(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal
+                ),
                 trailingIcon = {
                     if (viewModel.itbisError.isBlank()) {
                         Icon(
@@ -223,6 +228,7 @@ private fun GastosBody(
                         )
                     }
                 }
+
             )
             // Monto Field
             OutlinedTextField(
@@ -233,6 +239,9 @@ private fun GastosBody(
                 label = { Text(text = "Monto") },
                 onValueChange = viewModel::onMontoChanged,
                 isError = viewModel.montoError.isNotBlank(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal
+                ),
                 trailingIcon = {
                     if (viewModel.montoError.isBlank()) {
                         Icon(
