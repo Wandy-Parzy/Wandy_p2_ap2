@@ -3,6 +3,8 @@ package com.example.wandy_p2_ap2.ui.gastos
 import android.app.DatePickerDialog
 import android.os.Build
 import android.widget.DatePicker
+import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,11 +47,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.red
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.wandy_p2_ap2.data.remote.dto.GastosDto
@@ -64,9 +68,9 @@ fun GastosScreen(
 ) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
             .wrapContentSize(Alignment.Center)
     ) {
+        ShowTextValidation()
         GastosBody()
         Gastos_List_Screen(navController = navController) { id ->
             navController.navigate(ScreenModuleG.Modifier_Screen.route + "/${id}")
@@ -96,14 +100,12 @@ private fun GastosBody(
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(5.dp),
-        verticalArrangement = Arrangement.spacedBy(0.dp)
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Spacer(modifier = Modifier.padding(5.dp))
         Text(
             text = "Gastos",
-            fontSize = 25.sp,
+            fontSize = 30.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.align(Alignment.CenterHorizontally),
             fontWeight = FontWeight.Bold
@@ -111,9 +113,8 @@ private fun GastosBody(
 
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(0.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
         ) {
             // Date Field
             OutlinedTextField(
@@ -132,17 +133,15 @@ private fun GastosBody(
                             .padding(4.dp)
                             .clickable {
                                 mDatePickerDialog.show()
-                            }
-                    )
+                            })
                 },
                 label = { Text(text = "Fecha") }
             )
         }
-        Spacer(modifier = Modifier.padding(17.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Center
         ) {
             // Suplidor Field
             OutlinedTextField(
@@ -195,69 +194,11 @@ private fun GastosBody(
                 }
             )
         }
-        if (viewModel.conceptoError.isNotBlank()) {
-            Text(
-                text = viewModel.conceptoError,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentSize(Alignment.Center)
-                    .align(Alignment.CenterHorizontally)
-            )
-        } else if (viewModel.conceptoError.isBlank()) {
-            Text(
-                text = viewModel.conceptoError,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.wrapContentSize(Alignment.Center)
-            )
-        }
-        if (viewModel.suplidorError.isNotBlank()) {
-            Text(
-                text = viewModel.suplidorError,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentSize(Alignment.Center)
-                    .align(Alignment.CenterHorizontally)
-            )
-        } else if (viewModel.suplidorError.isBlank()) {
-            Text(
-                text = viewModel.suplidorError,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.wrapContentSize(Alignment.Center)
-            )
-        }
-
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Center
         ) {
-            // Monto Field
-            OutlinedTextField(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(4.dp),
-                value = viewModel.monto.toString(),
-                label = { Text(text = "Monto") },
-                onValueChange = viewModel::onMontoChanged,
-                isError = viewModel.montoError.isNotBlank(),
-                trailingIcon = {
-                    if (viewModel.montoError.isBlank()) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Check,
-                            contentDescription = "success",
-                            modifier = Modifier.clickable(onClick = { viewModel.monto = 0 })
-                        )
-                    } else if (viewModel.montoError.isNotBlank()) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Close,
-                            contentDescription = "error",
-                            modifier = Modifier.clickable(onClick = { viewModel.LimpiarMonto() })
-                        )
-                    }
-                }
-            )
             // ITBIS Field
             OutlinedTextField(
                 modifier = Modifier
@@ -283,40 +224,32 @@ private fun GastosBody(
                     }
                 }
             )
-        }
-        if (viewModel.itbisError.isNotBlank()) {
-            Text(
-                text = viewModel.itbisError,
-                color = MaterialTheme.colorScheme.error,
+            // Monto Field
+            OutlinedTextField(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentSize(Alignment.Center)
-                    .align(Alignment.CenterHorizontally)
-            )
-        } else if (viewModel.itbisError.isBlank()) {
-            Text(
-                text = viewModel.itbisError,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.wrapContentSize(Alignment.Center)
-            )
-        }
-        if (viewModel.montoError.isNotBlank()) {
-            Text(
-                text = viewModel.montoError,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentSize(Alignment.Center)
-                    .align(Alignment.CenterHorizontally)
-            )
-        } else if (viewModel.montoError.isBlank()) {
-            Text(
-                text = viewModel.montoError,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.wrapContentSize(Alignment.Center)
+                    .weight(1f)
+                    .padding(4.dp),
+                value = viewModel.monto.toString(),
+                label = { Text(text = "Monto") },
+                onValueChange = viewModel::onMontoChanged,
+                isError = viewModel.montoError.isNotBlank(),
+                trailingIcon = {
+                    if (viewModel.montoError.isBlank()) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Check,
+                            contentDescription = "success",
+                            modifier = Modifier.clickable(onClick = { viewModel.monto = 0 })
+                        )
+                    } else if (viewModel.montoError.isNotBlank()) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Close,
+                            contentDescription = "error",
+                            modifier = Modifier.clickable(onClick = { viewModel.LimpiarMonto() })
+                        )
+                    }
+                }
             )
         }
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -324,7 +257,7 @@ private fun GastosBody(
         ) {
             ExtendedFloatingActionButton(
                 modifier = Modifier
-                    .size(470.dp, 50.dp),
+                    .size(460.dp, 50.dp),
                 containerColor = Color.Blue,
                 text = { Text("Guardar", fontSize = 26.sp, color = Color.White, modifier = Modifier
                     .fillMaxWidth()
@@ -347,6 +280,39 @@ private fun GastosBody(
         }
     }
 }
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun ShowTextValidation (viewModel: GastosApiViewModel = hiltViewModel())
+{
+    Column (
+        modifier = Modifier.fillMaxWidth().wrapContentSize(Alignment.TopCenter),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (viewModel.conceptoError.isNotBlank()) {
+            showToast(viewModel.conceptoError, MaterialTheme.colorScheme.error)
+        } else if (viewModel.conceptoError.isBlank()) {
+            showToast(viewModel.conceptoError, MaterialTheme.colorScheme.primary)
+        }
+
+        if (viewModel.suplidorError.isNotBlank()) {
+            showToast(viewModel.suplidorError, MaterialTheme.colorScheme.error)
+        } else if (viewModel.suplidorError.isBlank()) {
+            showToast(viewModel.suplidorError, MaterialTheme.colorScheme.primary)
+        }
+
+        if (viewModel.itbisError.isNotBlank()) {
+            showToast(viewModel.itbisError, MaterialTheme.colorScheme.error)
+        } else if (viewModel.itbisError.isBlank()) {
+            showToast(viewModel.itbisError, MaterialTheme.colorScheme.primary)
+        }
+
+        if (viewModel.montoError.isNotBlank()) {
+            showToast(viewModel.montoError, MaterialTheme.colorScheme.error)
+        } else if (viewModel.montoError.isBlank()) {
+            showToast(viewModel.montoError, MaterialTheme.colorScheme.primary)
+        }
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -357,7 +323,6 @@ fun Gastos_List_Screen(
     onGastoClick: (Int) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Spacer(modifier = Modifier.padding(3.dp))
         Scaffold(
             modifier = Modifier
                 .fillMaxWidth()
@@ -397,7 +362,6 @@ fun Gastos_List_Screen(
             }
         }
     }
-
 }
 
 
@@ -445,7 +409,7 @@ fun GastosRow(gastoRow: GastosDto, onGastoClick: (Int) -> Unit) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .wrapContentSize(Alignment.TopStart)
-                            .padding(5.dp),
+                            .padding(2.dp),
                         horizontalArrangement = Arrangement.End
                     ) {
                         Text(
@@ -469,9 +433,9 @@ fun GastosRow(gastoRow: GastosDto, onGastoClick: (Int) -> Unit) {
                     Divider(
                         modifier = Modifier.padding(2.dp),
                         color = Color(0xFF1D1D1D),
-                        thickness = 1.dp
+                        thickness = 2.dp
                     )
-                    Spacer(modifier = Modifier.padding(2.dp))
+                    Spacer(modifier = Modifier.padding(5.dp))
 
                     Row(
                         modifier = Modifier
@@ -491,7 +455,7 @@ fun GastosRow(gastoRow: GastosDto, onGastoClick: (Int) -> Unit) {
 
                     Spacer(modifier = Modifier.padding(2.dp))
 
-                    Column(modifier = Modifier.padding(3.dp)) {
+                    Column(modifier = Modifier.padding(2.dp)) {
                         Text(
                             String.format("Concepto: %s ", gastoRow.concepto),
                             fontSize = 15.sp,
@@ -510,26 +474,26 @@ fun GastosRow(gastoRow: GastosDto, onGastoClick: (Int) -> Unit) {
                     Divider(
                         modifier = Modifier.padding(2.dp),
                         color = Color(0xFF1D1D1D),
-                        thickness = 1.dp
+                        thickness = 2.dp
                     )
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .wrapContentSize(Alignment.TopStart)
-                            .padding(5.dp),
+                            .padding(2.dp),
                         horizontalArrangement = Arrangement.End
                     ) {
                         Text(
                             String.format("Itbis: %d", gastoRow.itbis),
-                            fontSize = 20.sp,
+                            fontSize = 15.sp,
                             style = MaterialTheme.typography.titleSmall,
                             color = Color(0xFF1D1D1D),
                             modifier = Modifier.weight(8f)
                         )
                         Text(
                             String.format("$%d", gastoRow.monto),
-                            fontSize = 25.sp,
+                            fontSize = 20.sp,
                             style = MaterialTheme.typography.titleSmall,
                             color = Color(0xFF1D1D1D),
                             modifier = Modifier
@@ -584,4 +548,17 @@ fun GastosRow(gastoRow: GastosDto, onGastoClick: (Int) -> Unit) {
         }
         Spacer(modifier = Modifier.padding(5.dp))
     }
+}
+
+@Suppress("DEPRECATION")
+@Composable
+fun showToast(message: String, textColor: Color) {
+    val context = LocalContext.current
+    Toast.makeText(
+        context,
+        message,
+        Toast.LENGTH_SHORT
+    ).apply {
+        view?.findViewById<TextView>(android.R.id.message)?.setTextColor(textColor.toArgb())
+    }.show()
 }
